@@ -8,6 +8,7 @@
   - Fondo plano: negro grisáceo en modo oscuro y gris claro en modo claro; solo el brillo del mouse lo cambia.
   - Modo ligero automático para celulares de poca memoria.
   - Archivos junto a este HTML: los GIFs del carrusel (tiktokgif1.gif...) y las miniaturas (trabajo1.jpg, trabajo2.jpg...).
+  - Carrusel: reproduce los videos .mp4 que están junto a este HTML (tiktokgif1.mp4...); si falta uno, usa el GIF con el mismo nombre.
   - Los trabajos del portafolio se editan en la lista "works" del script.
 -->
 <html lang="es" class="cargando">
@@ -175,7 +176,7 @@ html.cargando body>.shell{visibility:hidden;animation:ver 0s 6s forwards}
 .ph.man>.ph-d,.ph.man .ph-i,.ph.man::after{animation:none}
 .tg{position:absolute;top:8px;z-index:2;font-size:.62rem;font-weight:700;padding:2px 8px;border-radius:var(--r);background:rgba(0,0,0,.55);color:#fff}
 .tg.l{left:8px}.tg.r{right:8px}
-.ph img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none}
+.ph img,.ph video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none}
 .ph img:not([src]){visibility:hidden}
 .ba-r{display:flex;flex-direction:column;justify-content:center;gap:12px;min-width:0}
 .ba-r h3{margin:0;font-family:var(--display);font-size:1.1rem;letter-spacing:-.02em}
@@ -350,7 +351,7 @@ h1{font-family:'Krona One',var(--display);font-weight:400;letter-spacing:.01em;t
   <section id="presentacion">
     <div class="chips"><span>TikTok</span><span>Reels</span><span>Shorts</span></div>
     <h1>Fernando David.</h1>
-    <p class="lead">Director y Editor de vídeos, shorts, reels, tiktoks publicitarios o de entretenimiento.</p>
+    <p class="lead">Director y Editor de vídeos, shorts, reels, tiktoks publicitarios o de entretenimiento, para que te quedes en la mente de tus clientes.</p>
     <div class="actions">
       <button class="btn cta" data-go="contactos">Quiero mi video</button>
     </div>
@@ -503,15 +504,15 @@ Promise.race([
 
 // Carrusel antes / después (cambia estos datos por tus resultados reales)
 const casos=[
-  {pl:'TikTok',t:'Narrativos, Explicativos.',g:["tiktokgif1.gif","tiktokgif2.gif"],a:[100,56,34,23,17,13],d:[100,90,82,76,71,67],m:[['Retención a 3 s','41%','78%'],['Vista promedio','4 s','11 s']]},
-  {pl:'Reels',t:'Turismo, Locales, Negocios.',g:["gifcolors1.gif","gifcolors2.gif"],a:[100,60,38,27,20,15],d:[100,93,85,79,74,70],m:[['Retención a 3 s','45%','81%'],['Vista promedio','5 s','12 s']]},
-  {pl:'Shorts',t:'Entretenimiento, Explicativos',g:["Shortsgif1.gif","Shortsgif2.gif"],a:[100,52,31,20,14,10],d:[100,88,80,73,68,64],m:[['Retención a 3 s','38%','75%'],['Vista promedio','3 s','9 s']]}
+  {pl:'TikTok',t:'Receta en 30 s',g:["tiktokgif1.mp4","tiktokgif2.mp4"],a:[100,56,34,23,17,13],d:[100,90,82,76,71,67],m:[['Retención a 3 s','41%','78%'],['Vista promedio','4 s','11 s']]},
+  {pl:'Reels',t:'Antes de tu viaje',g:["gifcolors1.mp4","gifcolors2.mp4"],a:[100,60,38,27,20,15],d:[100,93,85,79,74,70],m:[['Retención a 3 s','45%','81%'],['Vista promedio','5 s','12 s']]},
+  {pl:'Shorts',t:'Tu producto en 15 s',g:["Shortsgif1.mp4","Shortsgif2.mp4"],a:[100,52,31,20,14,10],d:[100,88,80,73,68,64],m:[['Retención a 3 s','38%','75%'],['Vista promedio','3 s','9 s']]}
 ];
 const pts=v=>v.map((y,i)=>(i?'L':'M')+i*48+','+(110-y)).join('');
 const track=document.getElementById('baTrack'),view=document.getElementById('baView'),dots=document.getElementById('baDots');
 track.innerHTML=casos.map(c=>`
 <article class="ba-slide">
-  <div class="ph"><div class="ph-a">${c.g?`<img data-g="${c.g[0]}" alt="Antes" draggable="false" decoding="async" onerror="this.hidden=true">`:`<small>${c.t.toLowerCase()}</small>`}</div><div class="ph-d"><div class="ph-i">${c.g?`<img data-g="${c.g[1]}" alt="Después" draggable="false" decoding="async" onerror="this.hidden=true">`:c.t}</div></div><span class="tg l">Antes</span><span class="tg r">Después</span></div>
+  <div class="ph"><div class="ph-a">${c.g?`<img data-g="${c.g[0]}" alt="Antes" draggable="false" decoding="async">`:`<small>${c.t.toLowerCase()}</small>`}</div><div class="ph-d"><div class="ph-i">${c.g?`<img data-g="${c.g[1]}" alt="Después" draggable="false" decoding="async">`:c.t}</div></div><span class="tg l">Antes</span><span class="tg r">Después</span></div>
   <div class="ba-r">
     <h3>${c.pl}: ${c.t}</h3>
     <svg class="ch" viewBox="0 0 240 120" role="img" aria-label="Curva de retención antes y después">
@@ -526,74 +527,77 @@ track.innerHTML=casos.map(c=>`
 dots.innerHTML=casos.map((c,i)=>`<button type="button" aria-label="Ver ${c.pl}" data-bi="${i}"></button>`).join('');
 const slides=[...track.children];
 let bi=0,pausa=false,visible=false;
-// GIFs: solo corre el de la diapositiva visible, y el "antes" y el "después" arrancan en el mismo instante
-const gifBlobs={},usaBlob=/^https?:$/.test(location.protocol);
-function gifMs(buf){
-  const d=new Uint8Array(buf);let p=13,ms=0;
-  if(d[10]&128)p+=3<<((d[10]&7)+1);
-  while(p<d.length){
-    const t=d[p++];
-    if(t===0x3B)break;
-    if(t===0x21){
-      if(d[p++]===0xF9){const c=d[p+2]|(d[p+3]<<8);ms+=(c<2?10:c)*10;}
-      while(p<d.length&&d[p])p+=d[p]+1;
-      p++;
-    }else if(t===0x2C){
-      const f=d[p+8];p+=9;
-      if(f&128)p+=3<<((f&7)+1);
-      p++;
-      while(p<d.length&&d[p])p+=d[p]+1;
-      p++;
-    }else break;
-  }
-  return ms;
+
+// ===== Medios del carrusel (para que carguen rápido) =====
+// 1) Se reproduce el video .mp4 de cada caso (tiktokgif1.mp4...): pesa mucho menos que el GIF y empieza enseguida.
+// 2) Si falta el .mp4, se usa el GIF con el mismo nombre y se va viendo mientras baja.
+// Solo se baja y corre la diapositiva que se está viendo; las demás se liberan.
+const lenta=(()=>{const c=navigator.connection;return !!(c&&(c.saveData||/(^|-)2g$/.test(c.effectiveType||'')));})();
+function medioCrear(im){
+  return new Promise(res=>{
+    const base=im.dataset.g.replace(/\.(gif|mp4)$/i,'');
+    const mp4=[...new Set([base+'.mp4',base.toLowerCase()+'.mp4'])],gifs=[...new Set([base+'.gif',base.toLowerCase()+'.gif'])];   // en Vercel importan las mayúsculas
+    const v=document.createElement('video');
+    v.className='mv';v.muted=true;v.defaultMuted=true;v.loop=true;v.playsInline=true;v.preload='auto';
+    v.setAttribute('muted','');v.setAttribute('playsinline','');v.setAttribute('aria-label',im.alt);
+    let a=0,b=0,fin=false;
+    const listo=x=>{if(!fin){fin=true;res(x);}};
+    const usarGif=()=>{                                  // no hay .mp4: se usa el GIF
+      v.remove();
+      im.hidden=false;
+      im.onload=()=>listo({im});
+      im.onerror=()=>{if(b<gifs.length)im.src=gifs[b++];else{im.hidden=true;listo({});}};
+      im.onerror();
+    };
+    v.addEventListener('canplay',()=>listo({v}),{once:true});
+    v.addEventListener('error',()=>{if(fin)return;if(a<mp4.length)v.src=mp4[a++];else usarGif();});
+    im.after(v);
+    v.src=mp4[a++];
+  });
 }
-function gifBlob(u){
-  return gifBlobs[u]||(gifBlobs[u]=fetch(u).then(r=>r.ok?r.arrayBuffer():Promise.reject())
-    .then(buf=>({b:new Blob([buf],{type:'image/gif'}),ms:gifMs(buf)}))
-    .catch(e=>{delete gifBlobs[u];throw e;}));
-}
-function gifSoltar(i){const o=i.getAttribute('src');if(o&&o.startsWith('blob:'))URL.revokeObjectURL(o);}
-function gifLanzar(im,d){
-  im.forEach(gifSoltar);
-  im.forEach((i,k)=>{i.hidden=false;i.src=URL.createObjectURL(d[k].b);});
-}
-function gifsArrancar(s){
+function mediosArrancar(s){
   const im=[...s.querySelectorAll('img[data-g]')];
-  if(!im.length)return;
-  s._on=true;const tok=s._k=(s._k||0)+1;
-  if(!usaBlob){im.forEach(i=>{i.hidden=false;i.src=i.dataset.g;});return;}
-  Promise.all(im.map(i=>gifBlob(i.dataset.g))).then(d=>{
+  s._on=true;s._t0=Date.now();
+  if(!im.length||lenta){s._listo=true;return;}          // con datos limitados queda la imagen de fondo
+  s._listo=false;
+  const tok=s._k=(s._k||0)+1;
+  Promise.all(im.map(medioCrear)).then(m=>{
     if(!s._on||s._k!==tok)return;
-    gifLanzar(im,d);
-    const T=Math.max(...d.map(x=>x.ms));
-    if(T&&d.some(x=>Math.abs(x.ms-T)>30))s._rs=setInterval(()=>{if(s._on&&s._k===tok)gifLanzar(im,d);},T);
-  }).catch(()=>{if(s._on&&s._k===tok)im.forEach(i=>{i.src=i.dataset.g;});});
+    s._listo=true;
+    const v=m.map(x=>x.v).filter(Boolean);
+    v.forEach(x=>{x.currentTime=0;x.play().catch(()=>{});});   // los dos videos arrancan juntos
+    if(v.length===2)v[0].addEventListener('timeupdate',()=>{if(Math.abs(v[0].currentTime-v[1].currentTime)>.2)v[1].currentTime=v[0].currentTime;});
+  });
 }
-function gifsParar(s){
-  s._on=false;s._k=(s._k||0)+1;clearInterval(s._rs);
-  s.querySelectorAll('img[data-g]').forEach(i=>{gifSoltar(i);i.removeAttribute('src');});
+function mediosParar(s){
+  s._on=false;s._k=(s._k||0)+1;
+  s.querySelectorAll('video.mv').forEach(v=>{v.pause();v.removeAttribute('src');v.load();v.remove();});
+  s.querySelectorAll('img[data-g]').forEach(i=>{i.onload=i.onerror=null;i.removeAttribute('src');});
 }
-function gifs(){
+function medios(){
   slides.forEach((s,k)=>{
     clearTimeout(s._t);
-    if(k===bi&&visible&&!document.hidden){if(!s._on)gifsArrancar(s);}
-    else if(s._on)s._t=setTimeout(()=>gifsParar(s),550);
+    if(k===bi&&visible&&!document.hidden){if(!s._on)mediosArrancar(s);}
+    else if(s._on)s._t=setTimeout(()=>mediosParar(s),550);
   });
-  if(visible&&usaBlob)slides[(bi+1)%slides.length].querySelectorAll('img[data-g]').forEach(i=>gifBlob(i.dataset.g).catch(()=>{}));
 }
 function irA(i){
   bi=(i+slides.length)%slides.length;
   track.style.transform='translateX('+(-bi*100)+'%)';
   slides.forEach((s,k)=>s.classList.toggle('on',k===bi));
   [...dots.children].forEach((d,k)=>d.setAttribute('aria-current',k===bi));
-  gifs();
+  medios();
 }
 irA(0);
-if('IntersectionObserver' in window)new IntersectionObserver(e=>{visible=e[e.length-1].isIntersecting;gifs();}).observe(view);else{visible=true;gifs();}
-document.addEventListener('visibilitychange',gifs);
+if('IntersectionObserver' in window)new IntersectionObserver(e=>{visible=e[e.length-1].isIntersecting;medios();}).observe(view);else{visible=true;medios();}
+document.addEventListener('visibilitychange',medios);
 if(!matchMedia('(prefers-reduced-motion:reduce)').matches){
-  setInterval(()=>{if(!pausa&&!document.hidden&&view.offsetParent)irA(bi+1);},5200);
+  setInterval(()=>{
+    if(pausa||document.hidden||!view.offsetParent)return;
+    const s=slides[bi];
+    if(s._on&&!s._listo&&Date.now()-s._t0<15000)return;       // espera a que cargue lo de esta diapositiva (máx. 15 s)
+    irA(bi+1);
+  },5200);
 }
 view.addEventListener('pointerenter',()=>pausa=true);
 view.addEventListener('pointerleave',()=>pausa=false);
@@ -631,5 +635,3 @@ mqClaro.addEventListener('change',()=>{raiz.dataset.theme=mqClaro.matches?'light
 </script>
 </body>
 </html>
-        except KeyboardInterrupt:
-            pass
